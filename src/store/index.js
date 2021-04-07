@@ -17,11 +17,15 @@ actions: {
 
 export default new Vuex.Store({
   state: {
-    loading: false
+    loading: false,
+    cache: new Map(),
   },
   mutations: {
     setLoading(state, payload) {
       state.loading = payload
+    },
+    setCache(state, [requestKey, objects]) {
+      state.cache.set(requestKey, objects)
     }
   },
   actions: {
@@ -29,6 +33,9 @@ export default new Vuex.Store({
   getters: {
     getLoading(state) {
       return state.loading
+    },
+    getFromCache(state) {
+      return state.cache
     }
   }
 })

@@ -77,7 +77,7 @@
             {{ currentPackage.scope }}
           </template>
           <div class="d-block">
-            <p class="text-center">{{ currentPackage.description }}</p>
+            <p class="text-left">{{ currentPackage.description }}</p>
             <p class="text-right" v-if="currentPackage.publisher">
               Posted by
               <b-link :href="'mailto:' + currentPackage.publisher.email">{{
@@ -172,20 +172,29 @@ export default {
     getLoading() {
       return this.$store.getters.getLoading;
     },
+    getFromCache() {
+      return this.$store.getters.getFromCache;
+    },
   },
   methods: {
     onSearch() {
-      if (!this.searchValid) return;
-      this.$store.commit("setLoading", true);
-      fetch(
-        "http://registry.npmjs.org/-/v1/search?text=" +
-          this.searchModel.value +
-          "&size=250",
-        { cache: "no-cache" }
-      )
-        .then((i) => i.json())
-        .then((r) => (this.searchModel.result = r.objects))
-        .finally(() => this.$store.commit("setLoading", false));
+      if (this.getFromCache.has(this.searchModel.value)) {
+        this.searchModel.result = this.getFromCache.get(this.searchModel.value);
+      } else {
+        this.$store.commit("setLoading", true);
+        fetch(
+          "https://registry.npmjs.org/-/v1/search?text=" +
+            this.searchModel.value +
+            "&size=250",
+          { cache: "no-cache" }
+        )
+          .then((i) => i.json())
+          .then((r) => {
+            this.$store.commit("setCache", [this.searchModel.value, r.objects]);
+            return (this.searchModel.result = r.objects);
+          })
+          .finally(() => this.$store.commit("setLoading", false));
+      }
     },
   },
 };
